@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="users.css">
+    <title>Ver Usuarios</title>
+    <style>
+        .status-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            background-color: green;
+        }
+
+        .fail-message {
+            background-color: red;
+        }
+
+        .status-message {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .close-button {
+            cursor: pointer;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="status-bar" id="estatus">
+    <span class="status-message"></span>
+    <span class="close-button" onclick="closeStatusBar()">X</span>
+</div>
+<header>
+    <h1>Ver Usuarios</h1>
+    <p class="form-info">Mostrando la tabla de Usuarios</p>
+</header>
+
+<table id="userTable">
+    <thead>
+    <tr>
+        <th>Código</th>
+        <th>Correo</th>
+        <th>Nombre</th>
+        <th>Sexo</th>
+        <th>Teléfono</th>
+        <th>Dirección</th>
+        <th>Fecha de Nacimiento</th>
+        <th>Fecha de Orden</th>
+        <th>Editar</th>
+        <th>Borrar</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="buttons">
+    <a href="http://localhost:8080/index.html" class="button">Regresar al inicio</a>
+    <a href="http://localhost:8080/register.html" class="button">Registrar</a>
+</div>
+
+<script>
+    loadTable();
+    function loadTable(){
+        fetch('http://localhost:8080/user')
+            .then(response => response.json())
+            .then(data => {
+                const userTable = document.getElementById('userTable');
+                const tbody = userTable.getElementsByTagName('tbody')[0];
+                //limpia la tabla
+                tbody.innerHTML = '';
+                // Recorre los datos y agrega cada fila a la tabla
+                data.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                            <td>${user.code}</td>
+                            <td>${user.mail}</td>
+                            <td>${user.name}</td>
+                            <td>${user.sex}</td>
+                            <td>${user.phone}</td>
+                            <td>${user.address}</td>
+                            <td>${user.birthday}</td>
+                            <td>${user.dateOrder}</td>
+                            <td><button style="background-color: #28a745; color: #fff; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer;" onclick="editUser('${user.code}')">Editar</button></td>
+                            <td><button style="background-color: #dc3545; color: #fff; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer;" onclick="deleteUser('${user.code}')">Borrar</button></td>
+
+                        `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error al cargar los datos:', error);
+                showStatusMessage("Error al cargar los datos", "fail-message");
+            });
+    }
+
+    function editUser(code) {
+        console.log('Redirigiendo a la pagina de edicion');
+        // Redirige a la página de edición usando el codido
+        window.location.href = `http://localhost:8080/editUser.html?code=${code}`;
+    }
+
+    function deleteUser(code) {
+        if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+            fetch(`http://localhost:8080/user/${code}`, {
+                method:'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        showStatusMessage("Usuario eliminado", "success-message");
+                        loadTable();
+                    } else {
+                        console.error('Error al eliminar el usuario');
+                        showStatusMessage("Error al eliminar", "fail-message");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al eliminar el usuario:', error);
+                    showStatusMessage("Error al eliminar", "fail-message");
+                });
+        }
+    }
+
+    // Function to show status message
+    const showStatusMessage = (message, className) => {
+        const statusElement = document.getElementById("estatus");
+        statusElement.textContent = message;
+        statusElement.className = "status-bar " + className;
+        statusElement.style.display = "block";
+    };
+
+    // Function to close status bar
+    const closeStatusBar = () => {
+        const statusElement = document.getElementById("estatus");
+        statusElement.style.display = "none";
+    };
+</script>
+</body>
+</html>

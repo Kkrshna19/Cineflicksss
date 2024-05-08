@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="register.css">
+    <title>Registro</title>
+    <style>
+        .status-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            background-color: green;
+        }
+
+        .fail-message {
+            background-color: red;
+        }
+
+        .status-message {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .close-button {
+            cursor: pointer;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="status-bar" id="estatus">
+    <span class="status-message"></span>
+    <span class="close-button" onclick="closeStatusBar()">X</span>
+</div>
+
+<header>
+    <h1>Registro</h1>
+    <p class="form-info">Favor de llenar los siguientes datos</p>
+</header>
+
+<div class="form-container">
+    <form>
+        <label for="input_mail">Correo electrónico</label><br>
+        <input type="email" id="input_mail" placeholder="ejemplo@gmail.com" name="email"><br>
+        <div id="errorMail" class="error-message"></div>
+
+        <label for="input_name">Nombre</label><br>
+        <input type="text" id="input_name" placeholder="Juan Lopez" name="name"><br>
+        <div id="errorName" class="error-message"></div>
+
+        <label for="input_sex">Sexo</label><br>
+        <select name="sex" id="input_sex">
+            <option value="">Seleccione una opción</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+        </select>
+        <div id="errorSex" class="error-message"></div>
+
+        <label for="input_phone">Teléfono</label><br>
+        <input type="text" id="input_phone" placeholder="33-1234-5678" name="phone"><br>
+        <div id="errorPhone" class="error-message"></div>
+
+        <label for="input_address">Dirección</label><br>
+        <input type="text" id="input_address" placeholder="Marcelino Garcia Barragan #1421" name="address"><br>
+        <div id="errorAddress" class="error-message"></div>
+
+        <label for="input_birthday">Fecha de nacimiento</label><br>
+        <input type="date" id="input_birthday" name="birthday"><br>
+        <div id="errorBirthday" class="error-message"></div>
+
+        <button id="accept" onclick="userRegister()" type="button" class="button">Registrar</button>
+    </form>
+</div>
+
+<div class="buttons">
+    <a href="http://localhost:8080/index.html" class="button">Regresar al inicio</a>
+    <a href="http://localhost:8080/users.html" class="button">Ver usuarios</a>
+</div>
+
+<script>
+    let currentDate = new Date();
+    let year = currentDate.getFullYear();
+    let month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    let day = String(currentDate.getDate()).padStart(2, '0');
+    let formattedDate = `${year}-${month}-${day}`;
+
+    document.getElementById("input_birthday").setAttribute("max", formattedDate);
+
+    // Function to show status message
+    const showStatusMessage = (message, className) => {
+        const statusElement = document.getElementById("estatus");
+        statusElement.textContent = message;
+        statusElement.className = "status-bar " + className;
+        statusElement.style.display = "block";
+    };
+
+    // Function to close status bar
+    const closeStatusBar = () => {
+        const statusElement = document.getElementById("estatus");
+        statusElement.style.display = "none";
+    };
+    function userRegister() {
+        let code=Math.floor((Math.random() * 10000) + 1);
+        let mail=document.getElementById("input_mail").value;
+        let name=document.getElementById("input_name").value;
+        let sex=document.getElementById("input_sex").value;
+        let phone=document.getElementById("input_phone").value;
+        let address=document.getElementById("input_address").value;
+        let birthday=document.getElementById("input_birthday").value;
+
+        // vacia los divs de error
+        document.querySelectorAll('.error-message').forEach(error => error.textContent = '');
+
+        // patron para admitir solo letras y espacios
+        const namePattern= /^[A-Za-z\s]+$/;
+        // patron de correo
+        const emailPattern= /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+        // verifica si los inputs cumplen con sus respectivos patrones
+        if(!emailPattern.test(mail)){
+            document.getElementById("errorMail").textContent = "El correo debe tener el formato: correo@dominio.com";
+            return;
+        }
+        if(!namePattern.test(name)){
+            document.getElementById("errorName").textContent = "El nombre solo puede llevar letras y espacios";
+            return;
+        }
+
+        // si ningun dato esta vacio
+        if (mail && name && sex && phone && address && birthday) {
+            const userData = {
+                code: code,
+                mail: mail,
+                name: name,
+                sex: sex,
+                phone: phone,
+                address: address,
+                birthday: birthday,
+                dateOrder: formattedDate,
+            }
+
+            const url='http://localhost:8080/user';
+
+            const requestOptions={
+                method: 'POST',
+                headers:{
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData),
+            };
+
+            fetch(url, requestOptions)
+                .then((response)=>{
+                    if(response.ok){
+                        return response.json();
+                    }else{
+                        throw new Error('Error en el registro');
+                    }
+                })
+                .then((data)=>{
+                    console.log('Registro exitoso', data);
+                    showStatusMessage("Usuario registrado", "success-message");
+
+                    // Clear input fields after successful registration
+                    document.querySelectorAll('input').forEach(input => input.value = '');
+                })
+                .catch((error)=>{
+                    console.error('Error de registro', error);
+                    showStatusMessage("Error en el registro", "fail-message");
+                });
+        }else{
+            // muestra que datos estan vacios
+            console.error('No se han llenado todos los datos');
+            if(!mail){
+                document.getElementById("errorMail").textContent = "El correo no puede estar vacío";
+            }
+            if(!name){
+                document.getElementById("errorName").textContent = "El nombre no puede estar vacío";
+            }
+            if(!sex){
+                document.getElementById("errorSex").textContent = "El sexo no puede estar vacío"
+            }
+            if(!phone){
+                document.getElementById("errorPhone").textContent = "El teléfono no puede estar vacío";
+            }
+            if(!address){
+                document.getElementById("errorAddress").textContent = "La dirección no puede estar vacía";
+            }
+            if(!birthday){
+                document.getElementById("errorBirthday").textContent = "La fecha de nacimiento no puede estar vacía";
+            }
+        }
+    }
+</script>
+</body>
+</html>

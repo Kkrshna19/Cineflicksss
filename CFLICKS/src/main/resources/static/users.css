@@ -1,0 +1,81 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1f1f1f; /* Dark background color */
+    color: #fff; /* Light text color */
+}
+
+header {
+    background-color: #000;
+    text-align: center;
+    padding: 40px 0 20px; /* Reduced bottom padding */
+    margin-bottom: 20px; /* Added margin bottom for separation */
+}
+
+header h1 {
+    margin-bottom: 10px; /* Reduce space between header and paragraph */
+}
+
+header .form-info {
+    font-size: 16px;
+}
+
+.buttons {
+    text-align: center;
+    margin-top: 20px; /* Added margin top for separation */
+}
+
+.button {
+    display: inline-block;
+    padding: 12px 24px; /* Increased padding */
+    background-color: #e50914;
+    color: #fff;
+    text-decoration: none;
+    margin: 10px;
+    border-radius: 10px; /* Rounded corners */
+    transition: background-color 0.3s;
+    border: none; /* Remove border */
+    font-size: 16px; /* Increased font size */
+}
+
+.button:hover {
+    background-color: #bf0812;
+}
+
+#accept {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    text-align: center;
+}
+
+/* Table Styles */
+table {
+    margin: 0 auto; /* Center the table */
+    border-collapse: collapse;
+    background-color: #333; /* Dark background color */
+    border: 2px solid #666; /* Darker border color */
+    color: #fff; /* Light text color */
+    width: 90%; /* Set width to 90% of the container */
+}
+
+th, td {
+    border: 1px solid #666; /* Darker border color */
+    padding: 8px;
+}
+
+th {
+    background-color: #444;
+    color: #fff;
+}
+
+.success-message {
+    color: green;
+    font-weight: bold;
+}
+
+.fail-message {
+    color: red;
+    font-weight: bold;
+}

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="register.css">
+    <title>Editar Usuario</title>
+    <style>
+        .status-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            background-color: green;
+        }
+
+        .fail-message {
+            background-color: red;
+        }
+
+        .status-message {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .close-button {
+            cursor: pointer;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="status-bar" id="estatus">
+    <span class="status-message"></span>
+    <span class="close-button" onclick="closeStatusBar()">X</span>
+</div>
+<header>
+    <h1>Editar usuario</h1>
+    <p style="font-size: 20px">Favor de actualizar la información del usuario</p>
+</header>
+
+<div class="form-container">
+<form style="font-size: 20px; padding: 4px 8px;">
+    <br><label for="edit_mail">Correo electrónico<br></label>
+    <input type="email" id="edit_mail" name="email"><br>
+    <div id="errorEditMail" class="error-message"></div>
+    <br><label for="edit_name">Nombre<br></label>
+    <input type="text" id="edit_name" name="name"><br>
+    <div id="errorEditName" class="error-message"></div>
+    <br><label for="edit_sex">Sexo<br></label>
+    <select name="sex" id="edit_sex">
+        <option value="">Seleccione una opción</option>
+        <option value="Masculino">Masculino</option>
+        <option value="Femenino">Femenino</option>
+        <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+    </select>
+    <div id="errorEditSex" class="error-message"></div>
+    <br><label for="edit_phone">Teléfono<br></label>
+    <input type="text" id="edit_phone" name="phone"><br>
+    <div id="errorEditPhone" class="error-message"></div>
+    <br><label for="edit_address">Dirección<br></label>
+    <input type="text" id="edit_address" name="address"><br>
+    <div id="errorEditAddress" class="error-message"></div>
+    <br><label for="edit_birthday">Fecha de nacimiento<br></label>
+    <input type="date" id="edit_birthday" name="birthday"><br>
+    <div id="errorEditBirthday" class="error-message"></div>
+    <button id="accept" onclick="userEdit()" type="button" class="button">Actualizar</button>
+</form>
+</div>
+<div class="buttons">
+    <a href="http://localhost:8080/users.html" class="button">Ver usuarios</a>
+    <a href="http://localhost:8080/index.html" class="button">Regresar al inicio</a>
+</div>
+
+<script>
+    var oldId, oldCode, oldDateOrder;
+
+    // Function to load user data
+    const loadUserData = () => {
+        // Fetch user data using code from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeUrl = urlParams.get('code');
+        let url= "http://localhost:8080/user/find-by-code?code=" + codeUrl;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(userData => {
+                let user = userData[0];
+                document.getElementById('edit_mail').value = user.mail;
+                document.getElementById('edit_name').value = user.name;
+                document.getElementById('edit_sex').value = user.sex;
+                document.getElementById('edit_phone').value = user.phone;
+                document.getElementById('edit_address').value = user.address;
+                document.getElementById('edit_birthday').value = user.birthday;
+                oldId = user.id;
+                oldCode = user.code;
+                oldDateOrder = user.dateOrder;
+            })
+            .catch(error => {
+                console.error('Error al cargar los datos del usuario:', error);
+            });
+    };
+
+    // Function to handle user edit
+    const userEdit = () => {
+        let mail = document.getElementById("edit_mail").value;
+        let name = document.getElementById("edit_name").value;
+        let sex = document.getElementById("edit_sex").value;
+        let phone = document.getElementById("edit_phone").value;
+        let address = document.getElementById("edit_address").value;
+        let birthday = document.getElementById("edit_birthday").value;
+
+        // Clear error messages
+        document.querySelectorAll('.error-message').forEach(error => error.textContent = '');
+
+        // Validation patterns
+        const namePattern = /^[A-Za-z\s]+$/;
+        const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+        // Validate inputs
+        let isValid = true;
+        if (!emailPattern.test(mail)) {
+            document.getElementById("errorEditMail").textContent = "El correo debe tener el formato: correo@dominio.com";
+            isValid = false;
+        }
+        if (!namePattern.test(name)) {
+            document.getElementById("errorEditName").textContent = "El nombre solo puede llevar letras y espacios";
+            isValid = false;
+        }
+
+        if (!isValid) {
+            // Abort if validation fails
+            return;
+        }
+
+        // Prepare user data
+        const userData = {
+            id: oldId,
+            code: oldCode,
+            mail: mail,
+            name: name,
+            sex: sex,
+            phone: phone,
+            address: address,
+            birthday: birthday,
+            dateOrder: oldDateOrder,
+        };
+
+        // Send PUT request to update user
+        const requestOptions = {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        };
+
+        fetch('http://localhost:8080/user', requestOptions)
+            .then(response => {
+                if (response.ok) {
+                    console.log('Datos del usuario actualizados');
+                    showStatusMessage("Usuario actualizado", "success-message");
+                } else {
+                    console.error('Error al actualizar los datos');
+                    showStatusMessage("Error al actualizar", "fail-message");
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar los datos:', error);
+                showStatusMessage("Error al actualizar", "fail-message");
+            });
+    };
+
+    // Function to show status message
+    const showStatusMessage = (message, className) => {
+        const statusElement = document.getElementById("estatus");
+        statusElement.textContent = message;
+        statusElement.className = "status-bar " + className;
+        statusElement.style.display = "block";
+    };
+
+    // Function to close status bar
+    const closeStatusBar = () => {
+        const statusElement = document.getElementById("estatus");
+        statusElement.style.display = "none";
+    };
+
+    // Load user data on page load
+    window.addEventListener('load', loadUserData);
+</script>
+</body>
+</html>
